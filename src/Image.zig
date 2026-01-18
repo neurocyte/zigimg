@@ -71,7 +71,7 @@ pub const WriteError = Error ||
     std.mem.Allocator.Error ||
     io.ReadStream.Error ||
     io.WriteStream.Error ||
-    std.fs.File.OpenError ||
+    std.Io.File.OpenError ||
     error{ EndOfStream, InvalidData, UnfinishedBits };
 
 pub const ConvertError = Error ||
@@ -158,7 +158,7 @@ pub fn detectFormatFromFilePath(file_path: []const u8, read_buffer: []u8) !Forma
 }
 
 /// Detect which image format is used by the file
-pub fn detectFormatFromFile(file: std.fs.File, read_buffer: []u8) !Format {
+pub fn detectFormatFromFile(file: std.Io.File, read_buffer: []u8) !Format {
     var read_stream = io.ReadStream.initFile(file, read_buffer);
     return internalDetectFormat(&read_stream);
 }
@@ -170,16 +170,16 @@ pub fn detectFormatFromMemory(buffer: []const u8) !Format {
 }
 
 /// Load an image from a file path
-pub fn fromFilePath(allocator: std.mem.Allocator, file_path: []const u8, read_buffer: []u8) !Image {
-    var file = try std.fs.cwd().openFile(file_path, .{});
-    defer file.close();
+pub fn fromFilePath(io_: std.Io, allocator: std.mem.Allocator, file_path: []const u8, read_buffer: []u8) !Image {
+    var file = try std.Io.Dir.cwd().openFile(io_, file_path, .{});
+    defer file.close(io_);
 
-    return fromFile(allocator, file, read_buffer);
+    return fromFile(io_, allocator, file, read_buffer);
 }
 
-/// Load an image from a standard library std.fs.File
-pub fn fromFile(allocator: std.mem.Allocator, file: std.fs.File, read_buffer: []u8) !Image {
-    var read_stream = io.ReadStream.initFile(file, read_buffer);
+/// Load an image from a standard library std.Io.File
+pub fn fromFile(io_: std.Io, allocator: std.mem.Allocator, file: std.Io.File, read_buffer: []u8) !Image {
+    var read_stream = io.ReadStream.initFile(file, io_, read_buffer);
     return internalRead(allocator, &read_stream);
 }
 
@@ -267,8 +267,8 @@ pub fn writeToFilePath(self: Image, allocator: std.mem.Allocator, file_path: []c
     try self.writeToFile(allocator, file, write_buffer, encoder_options);
 }
 
-/// Write the image to an image format to the specified std.fs.File
-pub fn writeToFile(self: Image, allocator: std.mem.Allocator, file: std.fs.File, write_buffer: []u8, encoder_options: EncoderOptions) WriteError!void {
+/// Write the image to an image format to the specified std.Io.File
+pub fn writeToFile(self: Image, allocator: std.mem.Allocator, file: std.Io.File, write_buffer: []u8, encoder_options: EncoderOptions) WriteError!void {
     var write_stream = io.WriteStream.initFile(file, write_buffer);
 
     try self.internalWrite(allocator, &write_stream, encoder_options);

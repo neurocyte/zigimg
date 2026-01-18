@@ -55,10 +55,31 @@ pub fn ScaleValue(comptime T: type) fn (anytype) T {
                                 // In order to fit `value * out_max` we need an
                                 // int of size `in_bits + out_bits` in the worst
                                 // case scenario.
-                                const FitInt = @Type(.{ .int = .{
-                                    .bits = in_bits + out_bits,
-                                    .signedness = .unsigned,
-                                } });
+                                const FitInt = switch (in_bits + out_bits) {
+                                    3 => u3,
+                                    4 => u4,
+                                    5 => u5,
+                                    6 => u6,
+                                    7 => u7,
+                                    8 => u8,
+                                    9 => u9,
+                                    10 => u10,
+                                    11 => u11,
+                                    12 => u12,
+                                    13 => u13,
+                                    14 => u14,
+                                    17 => u17,
+                                    18 => u18,
+                                    19 => u19,
+                                    20 => u20,
+                                    21 => u21,
+                                    22 => u22,
+                                    24 => u24,
+                                    else => {
+                                        @compileLog("no unsigned type in switch for requested bits", .{in_bits + out_bits});
+                                        @compileError("missing case");
+                                    },
+                                };
 
                                 return @truncate((@as(FitInt, value) * out_max + in_max / 2) / in_max);
                             } else return value;
