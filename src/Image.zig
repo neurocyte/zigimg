@@ -124,15 +124,15 @@ const all_interface_funcs = blk: {
     const all_formats_delcs = std.meta.declarations(SupportedFormats);
     var result: []const FormatInteraceFnType = &[0]FormatInteraceFnType{};
     for (all_formats_delcs) |decl| {
-        const decl_value = @field(SupportedFormats, decl.name);
+        const decl_value = @field(SupportedFormats, decl);
         const entry_type = @TypeOf(decl_value);
         if (entry_type == type) {
             const entry_type_info = @typeInfo(decl_value);
             if (entry_type_info == .@"struct") {
-                for (entry_type_info.@"struct".decls) |struct_entry| {
-                    if (std.mem.eql(u8, struct_entry.name, "formatInterface")) {
+                for (entry_type_info.@"struct".decl_names) |struct_entry| {
+                    if (std.mem.eql(u8, struct_entry, "formatInterface")) {
                         result = result ++ [_]FormatInteraceFnType{
-                            @field(decl_value, struct_entry.name),
+                            @field(decl_value, struct_entry),
                         };
                         break;
                     }
